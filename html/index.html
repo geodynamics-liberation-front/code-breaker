@@ -1,0 +1,187 @@
+<html>
+<head>
+<link href='https://fonts.googleapis.com/css?family=Anonymous+Pro' rel='stylesheet' type='text/css'>
+<style>
+* {
+	margin:0;
+	padding:0;
+}
+body {
+font-family: 'Anonymous Pro',monospace;
+font-size: 22pt;
+margin: 20px;
+}
+
+div {
+text-align: center;
+}
+
+#input{
+	font-family: 'Anonymous Pro',monospace;
+	font-size: 22pt;
+	width: 8em;
+	margin: 10px auto;
+	padding: 2px;
+	text-align: center;
+	box-shadow: none;
+	outline: none;
+	border: none;
+	border-bottom: 2px solid #cccccc;	
+}
+
+.bar {
+	border: none;
+	border-left: 2px solid black;
+	display: inline-block;
+}
+</style>
+<script>
+var colors=6
+var spots=4
+var code,input,results
+var won=false
+var logging=false;
+var attempts
+var ndxAttempts=0
+var scores=[]
+
+function keypress(e)
+{
+	var keyCode = ('which' in event) ? event.which : event.keyCode;
+	if( keyCode==13 && input.value.length==4) 
+	{
+		attempts.push(input.value)
+		ndxAttempts=attempts.length
+		var result=check(input.value)
+		var spaces=spots-result.length
+		for( var i=0; i<spaces; i++ ) { result=result+'&nbsp;' }
+		results.innerHTML=results.innerHTML+'<p>'+input.value+' '+result+'</p>'
+		input.value=''
+		won=result=='1111'
+		if(won)
+		{
+			scores.push(attempts.length)
+		}
+		return true;
+	}
+	else if( won )
+	{
+		if( keyCode==13 ) new_game()
+		e.preventDefault()
+		return false;
+	}
+	else if( keyCode==38 ) // up arrow (previous entry)
+	{
+		ndxAttempts=Math.max(0,ndxAttempts-1)
+		if( ndxAttempts<attempts.length )
+		{
+			input.value=attempts[ndxAttempts]
+		}
+		return true
+	}
+	else if( keyCode==40 ) // down arrow (next entry)
+	{
+		ndxAttempts=Math.min(attempts.length,ndxAttempts+1)
+		if( ndxAttempts<attempts.length )
+		{
+			input.value=attempts[ndxAttempts]
+		}
+		else
+		{
+			input.value=''
+		}
+		return true
+	}
+	else if( keyCode==8 || ( keyCode>34 && keyCode<48 ))
+	{
+		return true;
+	}
+	else if( input.value.length<4 && keyCode>47 && keyCode<=(47+colors) )
+	{
+		return true;
+	}
+	else
+	{
+		e.preventDefault()
+		return false;
+	}
+}
+
+function log(s)
+{
+	if(logging) { console.log(s) }
+}
+
+function check(attempt)
+{
+	var r=[],i,j
+	var c=code.split('')
+	var a=attempt.split('')
+
+	// Check for correct color and position
+	log("Color Position Check")
+	for( i=0; i<spots; i++ )
+	{
+		if( a[i]==c[i] ) 
+		{ 
+			c[i]=''  
+			a[i]=1
+			log(a)
+			log(c)
+		}
+	}
+
+	// Check for correct color
+	log("Color Check")
+	for( i=0; i<spots; i++ )
+	{
+		for( j=0; a[i]!='' && j<spots; j++ )
+		{
+			if( a[i]===c[j] )
+			{
+				c[j]=''
+				a[i]=0
+				log(a)
+				log(c)
+				break
+			}
+		}
+	}
+
+	// Build the result string
+	for( i=0; i<spots; i++ )
+	{
+		if( a[i]===0 || a[i]===1 ) { r.push(a[i]) }
+	}
+	r.sort(function(a, b){return b-a})
+	return  r.join('')
+}
+
+function init()
+{
+	input=document.getElementById('input')
+	input.addEventListener('keydown',function(e){ return keypress(e)})
+	input.focus()
+	results=document.getElementById('results')
+	new_game()
+}
+
+function new_game()
+{
+	attempts=[]
+	won=false
+	results.innerHTML=''
+	code=Math.floor(Math.random()*Math.pow(colors,spots)).toString(colors)
+	while(code.length<spots) { code="0"+code }
+}
+
+</script>
+</head>
+<body onload="init()">
+<div>
+<input id="input" />
+</div>
+<div id="results">
+</div>
+</body>
+</html>
